@@ -49,6 +49,27 @@ def feed():
         posts=posts
     )
 
+@post_controller.route("/api/posts", methods=["GET"])
+def api_get_posts():
+
+    posts = post_service.get_all_posts()
+
+    post_list = []
+
+    for post in posts:
+
+        post_list.append({
+            "id": post.id,
+            "user_id": post.user_id,
+            "content": post.content,
+            "image": post.image,
+            "created_at": str(post.created_at)
+        })
+
+    return jsonify({
+        "success": True,
+        "posts": post_list
+    }), 200
 
 
 
@@ -80,6 +101,57 @@ def create_post():
         return redirect("/feed")
 
     return render_template("create_post.html")
+
+
+
+@post_controller.route("/api/posts", methods=["POST"])
+def api_create_post():
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "message": "Request body is required"
+        }), 400
+
+    user_id = data.get("user_id")
+    content = data.get("content")
+
+    if not user_id:
+        return jsonify({
+            "success": False,
+            "message": "User ID is required"
+        }), 400
+
+    if not content or not content.strip():
+        return jsonify({
+            "success": False,
+            "message": "Post content is required"
+        }), 400
+
+    success, result = post_service.create_post(
+        user_id,
+        content
+    )
+
+    if not success:
+        return jsonify({
+            "success": False,
+            "message": result
+        }), 400
+
+    return jsonify({
+        "success": True,
+        "message": "Post created successfully",
+        "post": {
+            "id": result.id,
+            "user_id": result.user_id,
+            "content": result.content,
+            "image": result.image,
+            "created_at": str(result.created_at)
+        }
+    }), 201
 
 @post_controller.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 def edit_post(post_id):
@@ -124,6 +196,57 @@ def edit_post(post_id):
         post=post
     )
 
+
+@post_controller.route("/api/posts/<int:post_id>", methods=["PUT"])
+def api_update_post(post_id):
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "message": "Request body is required"
+        }), 400
+
+    user_id = data.get("user_id")
+    content = data.get("content")
+
+    if not user_id:
+        return jsonify({
+            "success": False,
+            "message": "User ID is required"
+        }), 400
+
+    if not content or not content.strip():
+        return jsonify({
+            "success": False,
+            "message": "Post content is required"
+        }), 400
+
+    success, result = post_service.update_post(
+        post_id,
+        user_id,
+        content
+    )
+
+    if not success:
+        return jsonify({
+            "success": False,
+            "message": result
+        }), 400
+
+    return jsonify({
+        "success": True,
+        "message": "Post updated successfully",
+        "post": {
+            "id": result.id,
+            "user_id": result.user_id,
+            "content": result.content,
+            "image": result.image,
+            "created_at": str(result.created_at)
+        }
+    }), 200
+
 @post_controller.route("/delete-post/<int:post_id>", methods=["POST"])
 def delete_post(post_id):
 
@@ -141,3 +264,27 @@ def delete_post(post_id):
         return message, 403
 
     return redirect("/feed")
+
+@post_controller.route("/api/posts/<int:post_id>", methods=["DELETE"])
+def delete_apipost(post_id):
+
+    user_id = request.json.get("user_id")
+
+    if not user_id:
+        return jsonify({
+            "message": "user_id is required"
+        }), 400
+
+    success, message = post_service.delete_post(
+        post_id,
+        user_id
+    )
+
+    if not success:
+        return jsonify({
+            "message": message
+        }), 404
+
+    return jsonify({
+        "message": message
+    }), 200

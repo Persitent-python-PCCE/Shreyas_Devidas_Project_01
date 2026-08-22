@@ -35,7 +35,7 @@ def register():
 
 
 @auth_controller.route("/api/register", methods = ["POST"])
-def register():
+def api_register():
     data = request.get_json()
 
     username = data.get("username")
@@ -86,9 +86,81 @@ def login():
     return render_template("login.html")
 
 
+@auth_controller.route("/api/login", methods=["POST"])
+def api_login():
+
+    data = request.get_json()
+
+    if not data:
+
+        return jsonify({
+            "success": False,
+            "message": "Request body is required"
+        }), 400
+
+
+    email = data.get("email")
+    password = data.get("password")
+
+
+    if not email:
+
+        return jsonify({
+            "success": False,
+            "message": "Email is required"
+        }), 400
+
+
+    if not password:
+
+        return jsonify({
+            "success": False,
+            "message": "Password is required"
+        }), 400
+
+
+    success, result = user_service.login_user(
+        email,
+        password
+    )
+
+
+    if not success:
+
+        return jsonify({
+            "success": False,
+            "message": result
+        }), 401
+
+
+    user = result
+
+
+    return jsonify({
+        "success": True,
+        "message": "Login successful",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
+    }), 200
+
+
 @auth_controller.route("/logout")
 def logout():
 
     session.clear()
 
     return redirect("/")
+
+@auth_controller.route("/api/logout", methods=["POST"])
+def api_logout():
+
+    session.clear()
+
+    return jsonify({
+        "success": True,
+        "message": "Logout successful"
+    }), 200
