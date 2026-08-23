@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, session, jsonify
 from service.user_service import UserService
-
+from flask_jwt_extended import create_access_token
+from utils.jwt_utils import user_required, get_current_user_id
 
 auth_controller = Blueprint("auth", __name__)
 
@@ -52,7 +53,31 @@ def api_register():
         "message": message
     }), 201
 
+@auth_controller.route("/api/profile", methods=["GET"])
+@user_required
+def api_get_profile():
 
+    user_id = get_current_user_id()
+
+    user = user_service.get_user_by_id(
+        int(user_id)
+    )
+
+    if not user:
+        return jsonify({
+            "success": False,
+            "message": "User not found"
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role,
+        }
+    }), 200
 
 @auth_controller.route("/login", methods=["GET", "POST"])
 def login():
@@ -92,53 +117,44 @@ def api_login():
     data = request.get_json()
 
     if not data:
-
         return jsonify({
             "success": False,
             "message": "Request body is required"
         }), 400
 
-
     email = data.get("email")
     password = data.get("password")
 
-
-    if not email:
-
+    if not email or not password:
         return jsonify({
             "success": False,
-            "message": "Email is required"
+            "message": "Email and password are required"
         }), 400
-
-
-    if not password:
-
-        return jsonify({
-            "success": False,
-            "message": "Password is required"
-        }), 400
-
 
     success, result = user_service.login_user(
         email,
         password
     )
 
-
     if not success:
-
         return jsonify({
             "success": False,
             "message": result
         }), 401
 
-
     user = result
 
+    access_token = create_access_token(
+        identity=str(user.id),
+        additional_claims={
+            "role": user.role
+        }
+    )
 
     return jsonify({
         "success": True,
         "message": "Login successful",
+        "access_token": access_token,
         "user": {
             "id": user.id,
             "username": user.username,
@@ -146,6 +162,9 @@ def api_login():
             "role": user.role
         }
     }), 200
+
+
+
 
 
 @auth_controller.route("/logout")

@@ -3,8 +3,9 @@ import uuid
 from flask import Blueprint, render_template, request, redirect, session, jsonify
 
 from service.post_service import PostService
-
+from utils.jwt_utils import user_required, get_current_user_id, get_current_user_role
 from werkzeug.utils import secure_filename
+from flask import current_app
 
 from service.post_service import PostService
 
@@ -15,6 +16,25 @@ post_controller = Blueprint(
 
 post_service = PostService()
 
+def allowed_file(filename):
+
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower()
+        in ALLOWED_EXTENSIONS
+    )
+
+UPLOAD_FOLDER = "static/uploads/posts"
+
+ALLOWED_EXTENSIONS = {
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "webp"
+}
+
+MAX_FILE_SIZE = 5 * 1024 * 1024   
 
 @post_controller.route("/feed", methods=["GET", "POST"])
 def feed():
@@ -84,11 +104,14 @@ def create_post():
 
         content = request.form.get("content")
 
+        image = request.files.get("image")
+
         user_id = session.get("user_id")
 
         success, result = post_service.create_post(
             user_id,
-            content
+            content,
+            image
         )
 
         if not success:
@@ -103,8 +126,8 @@ def create_post():
     return render_template("create_post.html")
 
 
-
 @post_controller.route("/api/posts", methods=["POST"])
+@user_required
 def api_create_post():
 
     data = request.get_json()
@@ -115,20 +138,15 @@ def api_create_post():
             "message": "Request body is required"
         }), 400
 
-    user_id = data.get("user_id")
     content = data.get("content")
 
-    if not user_id:
+    if not content:
         return jsonify({
             "success": False,
-            "message": "User ID is required"
+            "message": "Content is required"
         }), 400
 
-    if not content or not content.strip():
-        return jsonify({
-            "success": False,
-            "message": "Post content is required"
-        }), 400
+    user_id = get_current_user_id()
 
     success, result = post_service.create_post(
         user_id,
@@ -197,7 +215,11 @@ def edit_post(post_id):
     )
 
 
-@post_controller.route("/api/posts/<int:post_id>", methods=["PUT"])
+@post_controller.route(
+    "/api/posts/<int:post_id>",
+    methods=["PUT"]
+)
+@user_required
 def api_update_post(post_id):
 
     data = request.get_json()
@@ -208,28 +230,42 @@ def api_update_post(post_id):
             "message": "Request body is required"
         }), 400
 
-    user_id = data.get("user_id")
     content = data.get("content")
 
-    if not user_id:
+    if not content:
         return jsonify({
             "success": False,
-            "message": "User ID is required"
+            "message": "Content is required"
         }), 400
 
-    if not content or not content.strip():
+    user_id = get_current_user_id()
+    role = get_current_user_role()
+
+    post = post_service.post_dao.get_post_by_id(post_id)
+
+    if not post:
+
         return jsonify({
             "success": False,
-            "message": "Post content is required"
-        }), 400
+            "message": "Post not found"
+        }), 404
+
+    # Normal user can edit only own post
+    if role != "admin" and post.user_id != int(user_id):
+
+        return jsonify({
+            "success": False,
+            "message": "You can edit only your own post"
+        }), 403
 
     success, result = post_service.update_post(
         post_id,
-        user_id,
+        post.user_id,
         content
     )
 
     if not success:
+
         return jsonify({
             "success": False,
             "message": result
@@ -243,7 +279,8 @@ def api_update_post(post_id):
             "user_id": result.user_id,
             "content": result.content,
             "image": result.image,
-            "created_at": str(result.created_at)
+            "created_at": str(result.created_at),
+            "updated_at": str(result.updated_at)
         }
     }), 200
 
@@ -265,26 +302,150 @@ def delete_post(post_id):
 
     return redirect("/feed")
 
-@post_controller.route("/api/posts/<int:post_id>", methods=["DELETE"])
-def delete_apipost(post_id):
+@post_controller.route(
+    "/api/posts/<int:post_id>",
+    methods=["DELETE"]
+)
+@user_required
+def api_delete_post(post_id):
 
-    user_id = request.json.get("user_id")
+    user_id = get_current_user_id()
+    role = get_current_user_role()
 
-    if not user_id:
+    post = post_service.post_dao.get_post_by_id(post_id)
+
+    if not post:
+
         return jsonify({
-            "message": "user_id is required"
-        }), 400
+            "success": False,
+            "message": "Post not found"
+        }), 404
+
+    # Normal user can delete only own post
+    if role != "admin" and post.user_id != int(user_id):
+
+        return jsonify({
+            "success": False,
+            "message": "You can delete only your own post"
+        }), 403
 
     success, message = post_service.delete_post(
         post_id,
-        user_id
+        post.user_id
     )
 
     if not success:
+
         return jsonify({
+            "success": False,
             "message": message
-        }), 404
+        }), 400
 
     return jsonify({
-        "message": message
+        "success": True,
+        "message": "Post deleted successfully"
     }), 200
+
+
+@post_controller.route("/api/posts/image", methods=["POST"])
+def api_create_post_with_image():
+
+    user_id = request.form.get("user_id")
+    content = request.form.get("content")
+
+    if not user_id:
+
+        return jsonify({
+            "success": False,
+            "message": "User ID is required"
+        }), 400
+
+    if not content or not content.strip():
+
+        return jsonify({
+            "success": False,
+            "message": "Post content is required"
+        }), 400
+
+    if "image" not in request.files:
+
+        return jsonify({
+            "success": False,
+            "message": "Image is required"
+        }), 400
+
+    image = request.files["image"]
+
+    if image.filename == "":
+
+        return jsonify({
+            "success": False,
+            "message": "No image selected"
+        }), 400
+
+    if not allowed_file(image.filename):
+
+        return jsonify({
+            "success": False,
+            "message": "Invalid image type"
+        }), 400
+
+    image.seek(0, os.SEEK_END)
+
+    file_size = image.tell()
+
+    image.seek(0)
+
+    if file_size > MAX_FILE_SIZE:
+
+        return jsonify({
+            "success": False,
+            "message": "Image size must be less than 5 MB"
+        }), 400
+
+    original_filename = secure_filename(image.filename)
+
+    extension = original_filename.rsplit(".", 1)[1].lower()
+
+    filename = str(uuid.uuid4()) + "." + extension
+
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    file_path = os.path.join(
+        UPLOAD_FOLDER,
+        filename
+    )
+
+    image.save(file_path)
+
+    image_path = "uploads/posts/" + filename
+
+    success, result = post_service.create_post(
+        user_id,
+        content,
+        image_path
+    )
+
+    if not success:
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        return jsonify({
+            "success": False,
+            "message": result
+        }), 400
+
+    return jsonify({
+        "success": True,
+        "message": "Post created successfully",
+        "post": {
+            "id": result.id,
+            "user_id": result.user_id,
+            "content": result.content,
+            "image": result.image,
+            "created_at": str(result.created_at)
+        }
+    }), 201
+
+

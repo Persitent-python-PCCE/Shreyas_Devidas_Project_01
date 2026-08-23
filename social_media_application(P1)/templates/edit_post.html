@@ -4,9 +4,7 @@
 <head>
 
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Edit Post</title>
 
@@ -18,6 +16,31 @@
 
 <body class="bg-light">
 
+
+<nav class="navbar navbar-dark bg-dark">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold"
+           href="/feed">
+
+            SocialApp
+
+        </a>
+
+        <a
+            href="/feed"
+            class="btn btn-outline-light btn-sm">
+
+            Back to Feed
+
+        </a>
+
+    </div>
+
+</nav>
+
+
 <div class="container mt-5">
 
     <div class="row justify-content-center">
@@ -26,12 +49,16 @@
 
             <div class="card shadow">
 
-                <div class="card-body">
+                <div class="card-header bg-warning">
 
-                    <h2 class="mb-4">
+                    <h4 class="mb-0">
                         Edit Post
-                    </h2>
+                    </h4>
 
+                </div>
+
+
+                <div class="card-body">
 
                     {% if error %}
 
@@ -42,19 +69,18 @@
                     {% endif %}
 
 
-                    <form method="POST"
-                          action="/edit-post/{{ post.id }}">
+                    <form method="POST">
 
                         <div class="mb-3">
 
-                            <label class="form-label">
-                                Post
+                            <label class="form-label fw-bold">
+                                Content
                             </label>
 
                             <textarea
                                 name="content"
                                 class="form-control"
-                                rows="5"
+                                rows="6"
                                 required>{{ post.content }}</textarea>
 
                         </div>
@@ -62,15 +88,16 @@
 
                         <button
                             type="submit"
-                            class="btn btn-primary">
+                            class="btn btn-warning">
 
                             Update Post
 
                         </button>
 
 
-                        <a href="/feed"
-                           class="btn btn-secondary">
+                        <a
+                            href="/feed"
+                            class="btn btn-secondary">
 
                             Cancel
 
@@ -89,5 +116,4 @@
 </div>
 
 </body>
-
 </html>

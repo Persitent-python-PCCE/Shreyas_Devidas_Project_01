@@ -4,12 +4,7 @@ from models.post import Post
 
 class PostDAO:
 
-    def create_post(self, user_id, content):
-
-        post = Post(
-            user_id=user_id,
-            content=content
-        )
+    def create_post(self, post):
 
         db.session.add(post)
         db.session.commit()

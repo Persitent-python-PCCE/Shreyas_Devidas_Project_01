@@ -10,6 +10,13 @@ class UserDAO:
     def find_by_username(self, username):
         return User.query.filter_by(username=username).first()
 
+    def get_user_by_id(self, user_id):
+
+        return User.query.get(user_id)
+
+    def get_all_users(self):
+        return User.query.all()
+
     def create_user(self, username, email, password, role="user"):
 
         user = User(
