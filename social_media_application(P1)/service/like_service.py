@@ -64,3 +64,6 @@ class LikeService:
         )
 
         return True, likes
+
+    def count_likes(self):
+        return self.like_dao.count_likes()

@@ -172,10 +172,7 @@ def edit_post(post_id):
     )
 
 
-@post_controller.route(
-    "/api/posts/<int:post_id>",
-    methods=["PUT"]
-)
+@post_controller.route("/api/posts/<int:post_id>", methods=["PUT"])
 @user_required
 def api_update_post(post_id):
 
@@ -278,7 +275,7 @@ def api_delete_post(post_id):
             "message": "Post not found"
         }), 404
 
-    # Normal user can delete only own post
+    
     if role != "admin" and post.user_id != int(user_id):
 
         return jsonify({

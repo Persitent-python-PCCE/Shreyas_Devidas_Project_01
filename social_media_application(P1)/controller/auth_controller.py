@@ -53,6 +53,67 @@ def api_register():
         "message": message
     }), 201
 
+
+@auth_controller.route(
+    "/api/forgot-password",
+    methods=["POST"]
+)
+def api_forgot_password():
+
+    data = request.get_json()
+
+    email = data.get("email")
+
+    if not email:
+
+        return jsonify({
+            "success": False,
+            "message": "Email is required"
+        }), 400
+
+    success, result = user_service.forgot_password(email)
+
+    return jsonify({
+        "success": success,
+        "message": "If the email exists, a reset link has been generated.",
+        "reset_token": result
+    }), 200
+
+@auth_controller.route(
+    "/api/reset-password",
+    methods=["POST"]
+)
+def api_reset_password():
+
+    data = request.get_json()
+
+    token = data.get("token")
+    new_password = data.get("new_password")
+
+    if not token or not new_password:
+
+        return jsonify({
+            "success": False,
+            "message": "Token and new password are required"
+        }), 400
+
+    success, message = user_service.reset_password(
+        token,
+        new_password
+    )
+
+    if not success:
+
+        return jsonify({
+            "success": False,
+            "message": message
+        }), 400
+
+    return jsonify({
+        "success": True,
+        "message": message
+    }), 200
+
 @auth_controller.route("/api/profile", methods=["GET"])
 @user_required
 def api_get_profile():

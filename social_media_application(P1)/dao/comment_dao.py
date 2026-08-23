@@ -36,3 +36,7 @@ class CommentDAO:
 
         db.session.delete(comment)
         db.session.commit()
+
+
+    def count_comments(self):
+        return Comment.query.count()

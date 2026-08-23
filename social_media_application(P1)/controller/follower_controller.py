@@ -3,19 +3,13 @@ from flask import Blueprint, request, jsonify
 from service.follower_service import FollowerService
 from utils.jwt_utils import user_required, get_current_user_id, get_current_user_role
 
-follower_controller = Blueprint(
-    "follower",
-    __name__
-)
+follower_controller = Blueprint("follower", __name__)
 
 follower_service = FollowerService()
 
 
-# FOLLOW USER
-@follower_controller.route(
-    "/api/users/<int:following_id>/follow",
-    methods=["POST"]
-)
+
+@follower_controller.route("/api/users/<int:following_id>/follow", methods=["POST"])
 @user_required
 def api_follow_user(following_id):
 
@@ -44,11 +38,8 @@ def api_follow_user(following_id):
     }), 201
 
 
-# UNFOLLOW USER
-@follower_controller.route(
-    "/api/users/<int:following_id>/follow",
-    methods=["DELETE"]
-)
+
+@follower_controller.route("/api/users/<int:following_id>/follow", methods=["DELETE"])
 @user_required
 def api_unfollow_user(following_id):
 
@@ -71,11 +62,8 @@ def api_unfollow_user(following_id):
     }), 200
 
 
-# GET FOLLOWERS
-@follower_controller.route(
-    "/api/users/<int:user_id>/followers",
-    methods=["GET"]
-)
+
+@follower_controller.route("/api/users/<int:user_id>/followers", methods=["GET"])
 def api_get_followers(user_id):
 
     followers = follower_service.get_followers(
@@ -99,11 +87,8 @@ def api_get_followers(user_id):
     }), 200
 
 
-# GET FOLLOWING
-@follower_controller.route(
-    "/api/users/<int:user_id>/following",
-    methods=["GET"]
-)
+
+@follower_controller.route("/api/users/<int:user_id>/following", methods=["GET"])
 def api_get_following(user_id):
 
     following = follower_service.get_following(

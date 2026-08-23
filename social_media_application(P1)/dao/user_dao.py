@@ -30,3 +30,13 @@ class UserDAO:
         db.session.commit()
 
         return user
+
+    def get_user_by_reset_token(self, token):
+
+        return User.query.filter_by(reset_token=token).first()
+
+    def save_user(self, user):
+
+        db.session.commit()
+
+        return user

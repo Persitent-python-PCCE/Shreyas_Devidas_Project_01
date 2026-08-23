@@ -12,4 +12,6 @@ class User(db.Model):
     profile_picture = db.Column(db.String(255), nullable=True)
     role = db.Column(db.String(20), default="user", nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    reset_token = db.Column(db.String(255),nullable=True)
+
+    reset_token_expiry = db.Column(db.DateTime, nullable=True)

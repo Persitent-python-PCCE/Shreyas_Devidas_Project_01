@@ -63,3 +63,7 @@ class CommentService:
         self.comment_dao.delete_comment(comment)
 
         return True, "Comment deleted successfully"
+
+
+    def count_comments(self):
+        return self.comment_dao.count_comments()

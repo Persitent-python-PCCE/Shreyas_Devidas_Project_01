@@ -36,3 +36,6 @@ class LikeDAO:
         return Like.query.filter_by(
             post_id=post_id
         ).all()
+
+    def count_likes(self):
+        return Like.query.count()

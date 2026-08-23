@@ -3,19 +3,11 @@ from flask import Blueprint, request, jsonify
 from service.like_service import LikeService
 from utils.jwt_utils import user_required, get_current_user_id, get_current_user_role
 
-like_controller = Blueprint(
-    "like",
-    __name__
-)
+like_controller = Blueprint("like", __name__)
 
 like_service = LikeService()
 
-
-# LIKE POST
-@like_controller.route(
-    "/api/posts/<int:post_id>/like",
-    methods=["POST"]
-)
+@like_controller.route("/api/posts/<int:post_id>/like", methods=["POST"])
 @user_required
 def api_like_post(post_id):
 
@@ -38,11 +30,8 @@ def api_like_post(post_id):
         "message": "Post liked successfully"
     }), 201
 
-# UNLIKE POST
-@like_controller.route(
-    "/api/posts/<int:post_id>/like",
-    methods=["DELETE"]
-)
+
+@like_controller.route("/api/posts/<int:post_id>/like", methods=["DELETE"])
 @user_required
 def api_unlike_post(post_id):
 
@@ -66,11 +55,8 @@ def api_unlike_post(post_id):
     }), 200
 
 
-# GET LIKES
-@like_controller.route(
-    "/api/posts/<int:post_id>/likes",
-    methods=["GET"]
-)
+
+@like_controller.route( "/api/posts/<int:post_id>/likes", methods=["GET"])
 def api_get_likes(post_id):
 
     success, result = like_service.get_post_likes(

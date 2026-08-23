@@ -3,19 +3,11 @@ from flask import Blueprint, request, jsonify
 from service.comment_service import CommentService
 from utils.jwt_utils import user_required, get_current_user_id, get_current_user_role
 
-comment_controller = Blueprint(
-    "comment",
-    __name__
-)
+comment_controller = Blueprint("comment", __name__)
 
 comment_service = CommentService()
 
-
-# CREATE COMMENT
-@comment_controller.route(
-    "/api/posts/<int:post_id>/comments",
-    methods=["POST"]
-)
+@comment_controller.route("/api/posts/<int:post_id>/comments", methods=["POST"])
 @user_required
 def api_create_comment(post_id):
 
@@ -61,11 +53,8 @@ def api_create_comment(post_id):
         }
     }), 201
 
-# GET COMMENTS
-@comment_controller.route(
-    "/api/posts/<int:post_id>/comments",
-    methods=["GET"]
-)
+
+@comment_controller.route("/api/posts/<int:post_id>/comments", methods=["GET"])
 def api_get_comments(post_id):
 
     success, result = comment_service.get_post_comments(
@@ -96,11 +85,7 @@ def api_get_comments(post_id):
     }), 200
 
 
-# DELETE COMMENT
-@comment_controller.route(
-    "/api/comments/<int:comment_id>",
-    methods=["DELETE"]
-)
+@comment_controller.route("/api/comments/<int:comment_id>", methods=["DELETE"])
 @user_required
 def api_delete_comment(comment_id):
 
