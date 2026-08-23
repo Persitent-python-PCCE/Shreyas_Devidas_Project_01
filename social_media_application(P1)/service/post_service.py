@@ -17,52 +17,12 @@ class PostService:
     def create_post(self, user_id, content, image=None):
 
         if not content or not content.strip():
-
             return False, "Post content is required"
-
-        filename = None
-
-        if image and image.filename:
-
-            allowed_extensions = {
-                "jpg",
-                "jpeg",
-                "png",
-                "gif"
-            }
-
-            extension = image.filename.rsplit(".", 1)[-1].lower()
-
-            if extension not in allowed_extensions:
-
-                return False, "Invalid image type"
-
-            # Create unique filename
-            filename = secure_filename(
-                str(uuid.uuid4()) + "." + extension
-            )
-
-            upload_folder = os.path.join(
-                "static",
-                "uploads"
-            )
-
-            os.makedirs(
-                upload_folder,
-                exist_ok=True
-            )
-
-            image.save(
-                os.path.join(
-                    upload_folder,
-                    filename
-                )
-            )
 
         post = Post(
             user_id=user_id,
             content=content,
-            image=filename
+            image=image
         )
 
         self.post_dao.create_post(post)

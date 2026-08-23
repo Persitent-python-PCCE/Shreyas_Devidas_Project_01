@@ -126,50 +126,7 @@ def create_post():
     return render_template("create_post.html")
 
 
-@post_controller.route("/api/posts", methods=["POST"])
-@user_required
-def api_create_post():
 
-    data = request.get_json()
-
-    if not data:
-        return jsonify({
-            "success": False,
-            "message": "Request body is required"
-        }), 400
-
-    content = data.get("content")
-
-    if not content:
-        return jsonify({
-            "success": False,
-            "message": "Content is required"
-        }), 400
-
-    user_id = get_current_user_id()
-
-    success, result = post_service.create_post(
-        user_id,
-        content
-    )
-
-    if not success:
-        return jsonify({
-            "success": False,
-            "message": result
-        }), 400
-
-    return jsonify({
-        "success": True,
-        "message": "Post created successfully",
-        "post": {
-            "id": result.id,
-            "user_id": result.user_id,
-            "content": result.content,
-            "image": result.image,
-            "created_at": str(result.created_at)
-        }
-    }), 201
 
 @post_controller.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 def edit_post(post_id):
@@ -347,79 +304,83 @@ def api_delete_post(post_id):
     }), 200
 
 
-@post_controller.route("/api/posts/image", methods=["POST"])
-def api_create_post_with_image():
+@post_controller.route("/api/posts", methods=["POST"])
+def api_create_post():
 
     user_id = request.form.get("user_id")
     content = request.form.get("content")
 
+    # Check user id
     if not user_id:
-
         return jsonify({
             "success": False,
             "message": "User ID is required"
         }), 400
 
+    # Check content
     if not content or not content.strip():
-
         return jsonify({
             "success": False,
             "message": "Post content is required"
         }), 400
 
-    if "image" not in request.files:
+    image_path = None
 
-        return jsonify({
-            "success": False,
-            "message": "Image is required"
-        }), 400
+    # Image is optional
+    if "image" in request.files:
 
-    image = request.files["image"]
+        image = request.files["image"]
 
-    if image.filename == "":
+        # Check image name
+        if image.filename == "":
+            return jsonify({
+                "success": False,
+                "message": "No image selected"
+            }), 400
 
-        return jsonify({
-            "success": False,
-            "message": "No image selected"
-        }), 400
+        # Check extension
+        if not allowed_file(image.filename):
+            return jsonify({
+                "success": False,
+                "message": "Invalid image type"
+            }), 400
 
-    if not allowed_file(image.filename):
+        # Check file size
+        image.seek(0, os.SEEK_END)
 
-        return jsonify({
-            "success": False,
-            "message": "Invalid image type"
-        }), 400
+        file_size = image.tell()
 
-    image.seek(0, os.SEEK_END)
+        image.seek(0)
 
-    file_size = image.tell()
+        if file_size > MAX_FILE_SIZE:
+            return jsonify({
+                "success": False,
+                "message": "Image size must be less than 5 MB"
+            }), 400
 
-    image.seek(0)
+        # Create unique filename
+        original_filename = secure_filename(image.filename)
 
-    if file_size > MAX_FILE_SIZE:
+        extension = original_filename.rsplit(".", 1)[1].lower()
 
-        return jsonify({
-            "success": False,
-            "message": "Image size must be less than 5 MB"
-        }), 400
+        filename = str(uuid.uuid4()) + "." + extension
 
-    original_filename = secure_filename(image.filename)
+        # Create upload folder
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-    extension = original_filename.rsplit(".", 1)[1].lower()
+        # Full file path
+        file_path = os.path.join(
+            UPLOAD_FOLDER,
+            filename
+        )
 
-    filename = str(uuid.uuid4()) + "." + extension
+        # Save image
+        image.save(file_path)
 
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        # Path stored in database
+        image_path = "uploads/posts/" + filename
 
-    file_path = os.path.join(
-        UPLOAD_FOLDER,
-        filename
-    )
-
-    image.save(file_path)
-
-    image_path = "uploads/posts/" + filename
-
+    # Create post
     success, result = post_service.create_post(
         user_id,
         content,
@@ -427,9 +388,6 @@ def api_create_post_with_image():
     )
 
     if not success:
-
-        if os.path.exists(file_path):
-            os.remove(file_path)
 
         return jsonify({
             "success": False,
