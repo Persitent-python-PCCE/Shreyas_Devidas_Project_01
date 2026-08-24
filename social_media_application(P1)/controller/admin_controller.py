@@ -5,7 +5,7 @@ from service.post_service import PostService
 from service.comment_service import CommentService
 from service.like_service import LikeService
 
-
+from service.admin_service import AdminService
 from utils.jwt_utils import admin_required
 
 
@@ -14,8 +14,8 @@ admin_controller = Blueprint(
     __name__
 )
 
-user_service = UserService()
 
+admin_service = AdminService()
 
 user_service = UserService()
 post_service = PostService()
@@ -56,6 +56,22 @@ def admin_dashboard():
 
         likes_count=likes_count
     )
+
+
+@admin_controller.route(
+    "/api/admin/dashboard",
+    methods=["GET"]
+)
+@admin_required
+def api_admin_dashboard():
+
+    stats = admin_service.get_dashboard_stats()
+
+    return jsonify({
+        "success": True,
+        "message": "Admin dashboard data",
+        "data": stats
+    }), 200
 
 @admin_controller.route(
     "/api/admin/users",

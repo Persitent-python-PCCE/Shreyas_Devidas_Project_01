@@ -35,22 +35,23 @@ class PostService:
         return self.post_dao.get_all_posts()
 
 
-    def update_post(self, post_id, user_id, content):
+    def update_post(self, post_id, user_id, content, image_path):
 
         post = self.post_dao.get_post_by_id(post_id)
 
         if not post:
             return False, "Post not found"
 
-        if post.user_id != user_id:
-            return False, "You can update only your own post"
-
-        if not content or not content.strip():
-            return False, "Post content cannot be empty"
+        if str(post.user_id) != str(user_id):
+            return False, "You are not allowed to update this post"
 
         post.content = content
+        post.image = image_path
 
-        self.post_dao.update_post(post)
+        success = self.post_dao.update_post(post)
+
+        if not success:
+            return False, "Failed to update post"
 
         return True, post
 
@@ -62,9 +63,12 @@ class PostService:
         if not post:
             return False, "Post not found"
 
-        if post.user_id != user_id:
-            return False, "You can delete only your own post"
+        if str(post.user_id) != str(user_id):
+            return False, "You are not allowed to delete this post"
 
-        self.post_dao.delete_post(post)
+        success = self.post_dao.delete_post(post)
+
+        if not success:
+            return False, "Failed to delete post"
 
         return True, "Post deleted successfully"

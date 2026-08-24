@@ -28,10 +28,27 @@ class PostDAO:
 
     def update_post(self, post):
 
-        db.session.commit()
+        try:
+            db.session.commit()
+            return True
+
+        except Exception as e:
+            db.session.rollback()
+            print("Update post error:", e)
+            return False
 
 
     def delete_post(self, post):
 
-        db.session.delete(post)
-        db.session.commit()
+        try:
+            db.session.delete(post)
+            db.session.commit()
+
+            return True
+
+        except Exception as e:
+            db.session.rollback()
+
+            print("Delete post error:", e)
+
+            return False

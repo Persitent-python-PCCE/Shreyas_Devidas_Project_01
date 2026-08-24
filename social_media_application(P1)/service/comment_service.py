@@ -10,16 +10,14 @@ class CommentService:
         self.post_dao = PostDAO()
 
 
-    def add_comment(self, post_id, user_id, content):
+    def create_comment(self, user_id, post_id, content):
 
         if not content or not content.strip():
-
             return False, "Comment cannot be empty"
 
         post = self.post_dao.get_post_by_id(post_id)
 
         if not post:
-
             return False, "Post not found"
 
         comment = self.comment_dao.create_comment(
@@ -63,7 +61,7 @@ class CommentService:
         self.comment_dao.delete_comment(comment)
 
         return True, "Comment deleted successfully"
-
+ 
 
     def count_comments(self):
         return self.comment_dao.count_comments()

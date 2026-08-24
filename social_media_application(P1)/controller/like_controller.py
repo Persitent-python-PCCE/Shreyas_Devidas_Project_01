@@ -14,8 +14,8 @@ def api_like_post(post_id):
     user_id = get_current_user_id()
 
     success, result = like_service.like_post(
-        user_id,
-        post_id
+        post_id,
+        user_id
     )
 
     if not success:
@@ -38,8 +38,8 @@ def api_unlike_post(post_id):
     user_id = get_current_user_id()
 
     success, result = like_service.unlike_post(
-        user_id,
-        post_id
+        post_id,
+        user_id
     )
 
     if not success:

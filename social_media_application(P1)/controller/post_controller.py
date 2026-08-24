@@ -172,50 +172,109 @@ def edit_post(post_id):
     )
 
 
-@post_controller.route("/api/posts/<int:post_id>", methods=["PUT"])
+@post_controller.route(
+    "/api/posts/<int:post_id>",
+    methods=["PUT"]
+)
 @user_required
 def api_update_post(post_id):
 
-    data = request.get_json()
-
-    if not data:
-        return jsonify({
-            "success": False,
-            "message": "Request body is required"
-        }), 400
-
-    content = data.get("content")
-
-    if not content:
-        return jsonify({
-            "success": False,
-            "message": "Content is required"
-        }), 400
 
     user_id = get_current_user_id()
-    role = get_current_user_role()
+
+    
+    content = request.form.get("content")
+
+    
+    if not content or not content.strip():
+        return jsonify({
+            "success": False,
+            "message": "Post content is required"
+        }), 400
+
 
     post = post_service.post_dao.get_post_by_id(post_id)
 
     if not post:
-
         return jsonify({
             "success": False,
             "message": "Post not found"
         }), 404
 
-    # Normal user can edit only own post
-    if role != "admin" and post.user_id != int(user_id):
-
+    if str(post.user_id) != str(user_id):
         return jsonify({
             "success": False,
-            "message": "You can edit only your own post"
+            "message": "You are not allowed to update this post"
         }), 403
+
+    image_path = post.image
+
+
+    if "image" in request.files:
+
+        image = request.files["image"]
+
+        if image.filename == "":
+            return jsonify({
+                "success": False,
+                "message": "No image selected"
+            }), 400
+
+
+        if not allowed_file(image.filename):
+            return jsonify({
+                "success": False,
+                "message": "Invalid image type"
+            }), 400
+
+
+        image.seek(0, os.SEEK_END)
+
+        file_size = image.tell()
+
+        image.seek(0)
+
+        if file_size > MAX_FILE_SIZE:
+            return jsonify({
+                "success": False,
+                "message": "Image size must be less than 5 MB"
+            }), 400
+
+
+        original_filename = secure_filename(
+            image.filename
+        )
+
+
+        extension = original_filename.rsplit(
+            ".",
+            1
+        )[1].lower()
+
+
+        filename = str(uuid.uuid4()) + "." + extension
+
+
+        os.makedirs(
+            UPLOAD_FOLDER,
+            exist_ok=True
+        )
+
+        file_path = os.path.join(
+            UPLOAD_FOLDER,
+            filename
+        )
+
+        image.save(file_path)
+
+
+        image_path = "uploads/posts/" + filename
 
     success, result = post_service.update_post(
         post_id,
-        post.user_id,
-        content
+        user_id,
+        content,
+        image_path
     )
 
     if not success:
@@ -264,32 +323,29 @@ def delete_post(post_id):
 def api_delete_post(post_id):
 
     user_id = get_current_user_id()
-    role = get_current_user_role()
 
-    post = post_service.post_dao.get_post_by_id(post_id)
+    post = post_service.post_dao.get_post_by_id(
+        post_id
+    )
 
     if not post:
-
         return jsonify({
             "success": False,
             "message": "Post not found"
         }), 404
 
-    
-    if role != "admin" and post.user_id != int(user_id):
-
+    if str(post.user_id) != str(user_id):
         return jsonify({
             "success": False,
-            "message": "You can delete only your own post"
+            "message": "You are not allowed to delete this post"
         }), 403
 
     success, message = post_service.delete_post(
         post_id,
-        post.user_id
+        user_id
     )
 
     if not success:
-
         return jsonify({
             "success": False,
             "message": message
@@ -302,19 +358,17 @@ def api_delete_post(post_id):
 
 
 @post_controller.route("/api/posts", methods=["POST"])
+@user_required
 def api_create_post():
 
-    user_id = request.form.get("user_id")
-    content = request.form.get("content")
+    user_id = get_current_user_id()
 
-    # Check user id
-    if not user_id:
-        return jsonify({
-            "success": False,
-            "message": "User ID is required"
-        }), 400
+    if request.content_type and request.content_type.startswith("application/json"):
+        data = request.get_json()
+        content = data.get("content") if data else None
+    else:
+        content = request.form.get("content")
 
-    # Check content
     if not content or not content.strip():
         return jsonify({
             "success": False,
@@ -323,30 +377,24 @@ def api_create_post():
 
     image_path = None
 
-    # Image is optional
     if "image" in request.files:
 
         image = request.files["image"]
 
-        # Check image name
         if image.filename == "":
             return jsonify({
                 "success": False,
                 "message": "No image selected"
             }), 400
 
-        # Check extension
         if not allowed_file(image.filename):
             return jsonify({
                 "success": False,
                 "message": "Invalid image type"
             }), 400
 
-        # Check file size
         image.seek(0, os.SEEK_END)
-
         file_size = image.tell()
-
         image.seek(0)
 
         if file_size > MAX_FILE_SIZE:
@@ -355,29 +403,24 @@ def api_create_post():
                 "message": "Image size must be less than 5 MB"
             }), 400
 
-        # Create unique filename
         original_filename = secure_filename(image.filename)
 
         extension = original_filename.rsplit(".", 1)[1].lower()
 
         filename = str(uuid.uuid4()) + "." + extension
 
-        # Create upload folder
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-        # Full file path
         file_path = os.path.join(
             UPLOAD_FOLDER,
             filename
         )
 
-        # Save image
         image.save(file_path)
 
-        # Path stored in database
+
         image_path = "uploads/posts/" + filename
 
-    # Create post
     success, result = post_service.create_post(
         user_id,
         content,
@@ -385,7 +428,6 @@ def api_create_post():
     )
 
     if not success:
-
         return jsonify({
             "success": False,
             "message": result
@@ -402,5 +444,4 @@ def api_create_post():
             "created_at": str(result.created_at)
         }
     }), 201
-
 
