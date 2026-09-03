@@ -1,11 +1,15 @@
 from flask import Blueprint, render_template, request, redirect, session, jsonify
 from service.user_service import UserService
+from service.post_service import PostService
+from service.follower_service import FollowerService
 from flask_jwt_extended import create_access_token
 from utils.jwt_utils import user_required, get_current_user_id
 
 auth_controller = Blueprint("auth", __name__)
 
 user_service = UserService()
+post_service = PostService()
+follower_service = FollowerService()
 
 
 @auth_controller.route("/register", methods=["GET", "POST"])
@@ -166,7 +170,11 @@ def login():
         session["username"] = user.username
         session["role"] = user.role
 
+        if user.role == "admin":
+            return redirect("/admin/dashboard")
+
         return redirect("/feed")
+
 
 
     return render_template("login.html")
@@ -244,3 +252,34 @@ def api_logout():
         "success": True,
         "message": "Logout successful"
     }), 200
+
+@auth_controller.route("/profile")
+def profile():
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session.get("user_id")
+
+    user = user_service.get_user_by_id(user_id)
+
+    if not user:
+        return "User not found", 404
+
+    posts = post_service.get_posts_by_user(user_id)
+
+    followers_count = follower_service.get_followers(
+        user_id
+    )
+
+    following_count = follower_service.get_following(
+        user_id
+    )
+
+    return render_template(
+        "profile.html",
+        user=user,
+        posts=posts,
+        followers_count=followers_count,
+        following_count=following_count
+    )

@@ -43,3 +43,15 @@ class FollowerDAO:
         return Follower.query.filter_by(
             follower_id=user_id
         ).all()
+
+    def get_followers_count(self, user_id):
+
+        return Follower.query.filter_by(
+            following_id=user_id
+        ).count()
+
+    def get_following_count(self, user_id):
+
+        return Follower.query.filter_by(
+            follower_id=user_id
+        ).count()

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session, redirect
 
 from service.comment_service import CommentService
 from utils.jwt_utils import user_required, get_current_user_id, get_current_user_role
@@ -126,3 +126,30 @@ def api_delete_comment(comment_id):
         "success": True,
         "message": "Comment deleted successfully"
     }), 200
+
+
+@comment_controller.route(
+    "/comment/<int:post_id>",
+    methods=["POST"]
+)
+def add_comment(post_id):
+
+    # Get logged-in user
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return redirect("/login")
+
+    # Get comment content
+    content = request.form.get("content")
+
+    if not content or not content.strip():
+        return redirect("/feed")
+
+    success, message = comment_service.create_comment(
+        user_id,
+        post_id,
+        content
+    )
+
+    return redirect("/feed")

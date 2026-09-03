@@ -52,3 +52,12 @@ class PostDAO:
             print("Delete post error:", e)
 
             return False
+
+
+    def get_posts_by_user(self, user_id):
+
+        return Post.query.filter_by(
+            user_id=user_id
+        ).order_by(
+            Post.created_at.desc()
+        ).all()

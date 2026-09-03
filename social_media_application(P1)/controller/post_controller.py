@@ -42,19 +42,22 @@ def feed():
     if "user_id" not in session:
         return redirect("/login")
 
+    user_id = session.get("user_id")
+
     if request.method == "POST":
 
         content = request.form.get("content")
-        user_id = session.get("user_id")
+        image = request.files.get("image")
 
         success, result = post_service.create_post(
             user_id,
-            content
+            content,
+            image
         )
 
         if not success:
 
-            posts = post_service.get_all_posts()
+            posts = post_service.get_all_posts(user_id)
 
             return render_template(
                 "feed.html",
@@ -62,7 +65,7 @@ def feed():
                 error=result
             )
 
-    posts = post_service.get_all_posts()
+    posts = post_service.get_all_posts(user_id)
 
     return render_template(
         "feed.html",

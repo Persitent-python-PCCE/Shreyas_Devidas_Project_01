@@ -1,0 +1,32 @@
+services:
+  flask:
+    build: ./social_media_application(P1)/. #image: 
+    container_name: flask-app
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+    environment:
+      MYSQL_DB_URL : "mysql+pymysql://root:$#REY07@mysql:3306/social_media"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+    
+  mysql:
+    image: mysql:9.6.0
+    container_name: mysql_dbs
+    environment:
+      MYSQL_ROOT_PASSWORD: $#REY07
+      MYSQL_DATABASE: social_media
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+
+volumes:
+  mysql-data:
+
+networks:
+  app-network:

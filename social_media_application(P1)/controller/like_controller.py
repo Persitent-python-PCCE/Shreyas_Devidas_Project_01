@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session, redirect
 
 from service.like_service import LikeService
 from utils.jwt_utils import user_required, get_current_user_id, get_current_user_role
@@ -84,3 +84,42 @@ def api_get_likes(post_id):
         "total_likes": len(like_list),
         "likes": like_list
     }), 200
+
+
+
+@like_controller.route("/like/<int:post_id>", methods=["POST"])
+def like_post(post_id):
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return redirect("/login")
+
+    success, message = like_service.like_post(
+        post_id,
+        user_id
+    )
+
+    return redirect("/feed")
+
+@like_controller.route(
+    "/unlike/<int:post_id>",
+    methods=["POST"]
+)
+def unlike_post(post_id):
+
+    # Get logged-in user from session
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return redirect("/login")
+
+    success, message = like_service.unlike_post(
+        post_id,
+        user_id
+    )
+
+    if not success:
+        return redirect("/feed")
+
+    return redirect("/feed")

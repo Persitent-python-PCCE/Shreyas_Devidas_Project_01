@@ -16,3 +16,22 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime,default=datetime.utcnow)
 
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+    user = db.relationship(
+        "User",
+        backref="posts"
+    )
+
+    comments = db.relationship(
+        "Comment",
+        backref="post",
+        cascade="all, delete-orphan",
+        order_by="Comment.created_at.desc()"
+    )
+
+    likes = db.relationship(
+        "Like",
+        backref="post",
+        cascade="all, delete-orphan"
+    )

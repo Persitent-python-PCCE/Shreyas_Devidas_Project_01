@@ -17,25 +17,34 @@
     <style>
 
         body {
-            background-color: #f5f5f5;
+            background-color: #f4f6f9;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .create-card {
+            border: none;
+            border-radius: 15px;
         }
 
         .post-card {
-            border-radius: 12px;
+            border: none;
+            border-radius: 15px;
             overflow: hidden;
         }
 
-        .post-image {
-            width: 100%;
-            max-height: 600px;
-            object-fit: contain;
-            background-color: #000;
+        .post-header {
+            background-color: white;
         }
 
         .profile-circle {
             width: 45px;
             height: 45px;
+
             border-radius: 50%;
+
             background-color: #0d6efd;
             color: white;
 
@@ -44,6 +53,38 @@
             justify-content: center;
 
             font-weight: bold;
+            font-size: 18px;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 550px;
+            object-fit: contain;
+            background-color: #111;
+        }
+
+        .comment-box {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .comment-item {
+            border-bottom: 1px solid #dee2e6;
+            padding: 12px 0;
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .stats {
+            color: #6c757d;
+            font-size: 14px;
         }
 
     </style>
@@ -54,7 +95,9 @@
 <body>
 
 
-<!-- ================= NAVBAR ================= -->
+<!-- ================================================= -->
+<!-- NAVBAR -->
+<!-- ================================================= -->
 
 <nav class="navbar navbar-dark bg-dark">
 
@@ -73,9 +116,18 @@
 
             <a
                 href="/profile"
-                class="btn btn-outline-light btn-sm">
+                class="btn btn-outline-light btn-sm me-2">
 
                 Profile
+
+            </a>
+
+
+            <a
+                href="/create-post"
+                class="btn btn-primary btn-sm me-2">
+
+                + Create Post
 
             </a>
 
@@ -96,6 +148,10 @@
 
 
 
+<!-- ================================================= -->
+<!-- MAIN CONTAINER -->
+<!-- ================================================= -->
+
 <div class="container mt-4 mb-5">
 
 
@@ -103,75 +159,34 @@
     <!-- CREATE POST -->
     <!-- ================================================= -->
 
-    <div class="card shadow-sm mb-4">
+    <div class="card create-card shadow-sm mb-4">
 
-        <div class="card-body">
+        <div class="card-body p-4">
 
-            <h5 class="fw-bold mb-3">
-                Create a Post
-            </h5>
+            <div class="d-flex justify-content-between align-items-center">
 
+                <div>
 
-            {% if error %}
+                    <h5 class="fw-bold mb-1">
+                        Create a Post
+                    </h5>
 
-            <div class="alert alert-danger">
-                {{ error }}
-            </div>
-
-            {% endif %}
-
-
-            <form
-                method="POST"
-                action="/feed"
-                enctype="multipart/form-data">
-
-
-                <!-- IMAGE -->
-
-                <div class="mb-3">
-
-                    <label class="form-label fw-bold">
-                        Upload Image
-                    </label>
-
-                    <input
-                        type="file"
-                        name="image"
-                        class="form-control"
-                        accept=".jpg,.jpeg,.png,.gif"
-                        required>
+                    <p class="text-muted mb-0">
+                        Share something with the community.
+                    </p>
 
                 </div>
 
 
-                <!-- CAPTION -->
-
-                <div class="mb-3">
-
-                    <label class="form-label fw-bold">
-                        Caption
-                    </label>
-
-                    <textarea
-                        name="content"
-                        class="form-control"
-                        rows="3"
-                        placeholder="Write a caption..."
-                        required></textarea>
-
-                </div>
-
-
-                <button
-                    type="submit"
+                <a
+                    href="/create-post"
                     class="btn btn-primary">
 
-                    Create Post
+                    + Create Post
 
-                </button>
+                </a>
 
-            </form>
+            </div>
 
         </div>
 
@@ -180,13 +195,26 @@
 
 
     <!-- ================================================= -->
-    <!-- FEED -->
+    <!-- FEED HEADING -->
     <!-- ================================================= -->
 
-    <h4 class="fw-bold mb-3">
-        Feed
-    </h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
+        <h3 class="fw-bold mb-0">
+            Feed
+        </h3>
+
+        <span class="text-muted">
+            Latest Posts
+        </span>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- POSTS -->
+    <!-- ================================================= -->
 
     {% if posts %}
 
@@ -194,55 +222,84 @@
         {% for post in posts %}
 
 
-        <div class="card shadow-sm post-card mb-4">
+        <div class="card post-card shadow-sm mb-4">
 
 
-            <!-- ================= POST HEADER ================= -->
+            <!-- ================================================= -->
+            <!-- POST HEADER -->
+            <!-- ================================================= -->
 
-            <div class="card-header bg-white">
+            <div class="card-body post-header">
 
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-center">
 
 
                     <div class="d-flex align-items-center">
 
 
-                        <div class="profile-circle me-2">
+                        <!-- PROFILE -->
 
-                            U
+                        <div class="profile-circle me-3">
+
+                            {% if post.user %}
+
+                                {{ post.user.username[0]|upper }}
+
+                            {% else %}
+
+                                U
+
+                            {% endif %}
 
                         </div>
 
 
+                        <!-- USER DETAILS -->
+
                         <div>
 
                             <strong>
-                                User {{ post.user_id }}
+
+                                {% if post.user %}
+
+                                    {{ post.user.username }}
+
+                                {% else %}
+
+                                    User {{ post.user_id }}
+
+                                {% endif %}
+
                             </strong>
 
-                            <br>
 
-                            <small class="text-muted">
+                            <div>
 
-                                {{ post.created_at }}
+                                <small class="text-muted">
 
-                            </small>
+                                    {{ post.created_at }}
+
+                                </small>
+
+                            </div>
 
                         </div>
 
                     </div>
 
 
-                    <!-- EDIT / DELETE -->
+
+                    <!-- ================================================= -->
+                    <!-- EDIT DELETE -->
+                    <!-- ================================================= -->
 
                     {% if post.user_id == session.get("user_id") %}
 
                     <div>
 
-
                         <a
                             href="/edit-post/{{ post.id }}"
-                            class="btn btn-outline-warning btn-sm">
+                            class="btn btn-outline-warning btn-sm me-1">
 
                             Edit
 
@@ -256,15 +313,13 @@
 
                             <button
                                 type="submit"
-                                class="btn btn-outline-danger btn-sm"
-                                onclick="return confirm('Delete this post?')">
+                                class="btn btn-outline-danger btn-sm">
 
                                 Delete
 
                             </button>
 
                         </form>
-
 
                     </div>
 
@@ -276,15 +331,14 @@
 
 
 
-            <!-- ================= IMAGE ================= -->
+            <!-- ================================================= -->
+            <!-- POST IMAGE -->
+            <!-- ================================================= -->
 
             {% if post.image %}
 
             <img
-                src="{{ url_for(
-                    'static',
-                    filename='uploads/' + post.image
-                ) }}"
+                src="{{ url_for('static', filename=post.image) }}"
                 class="post-image"
                 alt="Post Image">
 
@@ -292,18 +346,16 @@
 
 
 
-            <!-- ================= POST BODY ================= -->
+            <!-- ================================================= -->
+            <!-- POST BODY -->
+            <!-- ================================================= -->
 
             <div class="card-body">
 
 
-                <!-- CAPTION -->
+                <!-- CONTENT -->
 
-                <p class="mb-3">
-
-                    <strong>
-                        User {{ post.user_id }}
-                    </strong>
+                <p class="post-content mb-3">
 
                     {{ post.content }}
 
@@ -311,15 +363,40 @@
 
 
 
-                <!-- LIKE COUNT -->
+                <!-- ================================================= -->
+                <!-- LIKE / COMMENT COUNT -->
+                <!-- ================================================= -->
 
-                <div class="mb-2">
+                <div class="d-flex justify-content-between stats mb-2">
 
-                    <strong>
 
-                        ❤️ {{ post.like_count|default(0) }} likes
+                    <span>
 
-                    </strong>
+                        ❤️
+                        {{ post.like_count|default(0) }}
+
+                        {% if post.like_count|default(0) == 1 %}
+                            Like
+                        {% else %}
+                            Likes
+                        {% endif %}
+
+                    </span>
+
+
+                    <span>
+
+                        💬
+                        {{ post.comments|length }}
+
+                        {% if post.comments|length == 1 %}
+                            Comment
+                        {% else %}
+                            Comments
+                        {% endif %}
+
+                    </span>
+
 
                 </div>
 
@@ -328,7 +405,9 @@
 
 
 
-                <!-- ================= LIKE / UNLIKE ================= -->
+                <!-- ================================================= -->
+                <!-- LIKE / UNLIKE -->
+                <!-- ================================================= -->
 
                 <div class="d-flex gap-2 mb-3">
 
@@ -382,7 +461,7 @@
                         href="#comments{{ post.id }}"
                         class="btn btn-outline-secondary btn-sm">
 
-                        💬 Comment
+                        💬 Comments
 
                     </a>
 
@@ -390,15 +469,19 @@
 
 
 
-                <!-- ================= COMMENTS ================= -->
+                <!-- ================================================= -->
+                <!-- COMMENTS -->
+                <!-- ================================================= -->
 
                 <div
                     id="comments{{ post.id }}"
-                    class="mt-3">
+                    class="comment-box p-3">
 
 
-                    <h6 class="fw-bold">
-                        Comments
+                    <h6 class="fw-bold mb-3">
+
+                        💬 Comments
+
                     </h6>
 
 
@@ -408,26 +491,45 @@
                         {% for comment in post.comments %}
 
 
-                        <div class="border-bottom py-2">
+                        <div class="comment-item">
 
 
-                            <strong>
-                                User {{ comment.user_id }}
-                            </strong>
+                            <!-- COMMENT USER -->
+
+                            <div class="d-flex justify-content-between">
 
 
-                            <p class="mb-1">
+                                <strong>
+
+                                    {% if comment.user %}
+
+                                        {{ comment.user.username }}
+
+                                    {% else %}
+
+                                        User {{ comment.user_id }}
+
+                                    {% endif %}
+
+                                </strong>
+
+
+                                <small class="text-muted">
+
+                                    {{ comment.created_at }}
+
+                                </small>
+
+                            </div>
+
+
+                            <!-- COMMENT CONTENT -->
+
+                            <p class="mb-0 mt-1">
 
                                 {{ comment.content }}
 
                             </p>
-
-
-                            <small class="text-muted">
-
-                                {{ comment.created_at }}
-
-                            </small>
 
 
                         </div>
@@ -439,7 +541,7 @@
                     {% else %}
 
 
-                        <p class="text-muted">
+                        <p class="text-muted mb-3">
 
                             No comments yet.
 
@@ -450,7 +552,9 @@
 
 
 
+                    <!-- ================================================= -->
                     <!-- ADD COMMENT -->
+                    <!-- ================================================= -->
 
                     <form
                         method="POST"
@@ -498,19 +602,34 @@
     {% else %}
 
 
+        <!-- ================================================= -->
         <!-- NO POSTS -->
+        <!-- ================================================= -->
 
-        <div class="card shadow-sm">
+        <div class="card shadow-sm border-0">
 
             <div class="card-body text-center py-5">
 
-                <h5>
+                <div class="display-5 mb-3">
+                    📭
+                </div>
+
+                <h4 class="fw-bold">
                     No posts yet
-                </h5>
+                </h4>
 
                 <p class="text-muted">
-                    Create your first post.
+                    Be the first person to create a post.
                 </p>
+
+
+                <a
+                    href="/create-post"
+                    class="btn btn-primary">
+
+                    Create Your First Post
+
+                </a>
 
             </div>
 

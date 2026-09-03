@@ -1,52 +1,127 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
     <meta charset="UTF-8">
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1">
 
-    <title>My Profile</title>
+    <title>My Profile - SocialApp</title>
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet">
 
+    <style>
+
+        body {
+            background-color: #f4f6f9;
+        }
+
+        .profile-card {
+            border: none;
+            border-radius: 15px;
+        }
+
+        .profile-image {
+            width: 130px;
+            height: 130px;
+            object-fit: cover;
+        }
+
+        .profile-placeholder {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background-color: #0d6efd;
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 50px;
+            font-weight: bold;
+
+            margin: auto;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .stat-number {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .post-card {
+            border: none;
+            border-radius: 15px;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 450px;
+            object-fit: contain;
+            background-color: #111;
+        }
+
+    </style>
+
 </head>
 
-<body class="bg-light">
 
+<body>
+
+
+<!-- NAVBAR -->
 
 <nav class="navbar navbar-dark bg-dark">
 
     <div class="container">
 
-        <a href="/feed"
-           class="navbar-brand fw-bold">
+        <a
+            href="/feed"
+            class="navbar-brand fw-bold">
 
             SocialApp
 
         </a>
 
+
         <div>
 
-            <a href="/feed"
-               class="btn btn-outline-light btn-sm">
+            <a
+                href="/feed"
+                class="btn btn-outline-light btn-sm me-2">
 
                 Home
 
             </a>
 
-            <a href="/create-post"
-               class="btn btn-primary btn-sm">
+
+            <a
+                href="/create-post"
+                class="btn btn-primary btn-sm me-2">
 
                 Create Post
 
             </a>
 
-            <a href="/logout"
-               class="btn btn-danger btn-sm">
+
+            <a
+                href="/logout"
+                class="btn btn-danger btn-sm">
 
                 Logout
 
@@ -59,139 +134,352 @@
 </nav>
 
 
-<div class="container mt-5">
+
+<!-- MAIN -->
+
+<div class="container mt-5 mb-5">
 
     <div class="row justify-content-center">
 
-        <div class="col-md-8">
+        <div class="col-md-9">
 
 
-            <!-- Profile -->
+            <!-- PROFILE CARD -->
 
-            <div class="card shadow-sm mb-4">
+            <div class="card profile-card shadow-sm mb-4">
 
-                <div class="card-body text-center">
+                <div class="card-body text-center p-4">
+
+
+                    <!-- PROFILE IMAGE -->
 
                     {% if user.profile_image %}
 
                     <img
                         src="{{ url_for('static',
                         filename='uploads/' + user.profile_image) }}"
-                        class="rounded-circle mb-3"
-                        width="120"
-                        height="120">
+                        class="rounded-circle profile-image mb-3"
+                        alt="Profile Image">
 
                     {% else %}
 
-                    <div
-                        class="rounded-circle bg-secondary text-white
-                        d-flex align-items-center justify-content-center
-                        mx-auto mb-3"
-                        style="width:120px;height:120px;">
+                    <div class="profile-placeholder mb-3">
 
-                        <h1>
-                            {{ user.username[0]|upper }}
-                        </h1>
+                        {{ user.username[0]|upper }}
 
                     </div>
 
                     {% endif %}
 
 
-                    <h3>
+                    <!-- USERNAME -->
+
+                    <h3 class="fw-bold mb-1">
+
                         {{ user.username }}
+
                     </h3>
 
-                    <p class="text-muted">
+
+                    <!-- EMAIL -->
+
+                    <p class="text-muted mb-2">
+
                         {{ user.email }}
+
                     </p>
 
-                    <span class="badge bg-primary">
-                        {{ user.role }}
+
+                    <!-- ROLE -->
+
+                    {% if user.role == "admin" %}
+
+                    <span class="badge bg-danger">
+
+                        ADMIN
+
                     </span>
+
+                    {% else %}
+
+                    <span class="badge bg-primary">
+
+                        USER
+
+                    </span>
+
+                    {% endif %}
+
+
+
+                    <!-- PROFILE STATS -->
+
+                    <div class="row justify-content-center mt-4">
+
+
+                        <!-- POSTS -->
+
+                        <div class="col-4 col-md-3">
+
+                            <div class="stat-box">
+
+                                <div class="stat-number">
+
+                                    {{ posts|length }}
+
+                                </div>
+
+                                <div class="stat-label">
+
+                                    Posts
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- FOLLOWERS -->
+
+                        <div class="col-4 col-md-3">
+
+                            <div class="stat-box">
+
+                                <div class="stat-number">
+
+                                    {{ followers_count|default(0) }}
+
+                                </div>
+
+                                <div class="stat-label">
+
+                                    Followers
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- FOLLOWING -->
+
+                        <div class="col-4 col-md-3">
+
+                            <div class="stat-box">
+
+                                <div class="stat-number">
+
+                                    {{ following_count|default(0) }}
+
+                                </div>
+
+                                <div class="stat-label">
+
+                                    Following
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
 
                 </div>
 
             </div>
 
 
-            <!-- Posts -->
 
-            <h4 class="fw-bold mb-3">
-                My Posts
-            </h4>
+            <!-- MY POSTS -->
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h4 class="fw-bold mb-0">
+
+                    My Posts
+
+                </h4>
+
+
+                <a
+                    href="/create-post"
+                    class="btn btn-primary btn-sm">
+
+                    + Create Post
+
+                </a>
+
+            </div>
+
 
 
             {% if posts %}
 
+
                 {% for post in posts %}
 
-                <div class="card shadow-sm mb-3">
+
+                <!-- POST -->
+
+                <div class="card post-card shadow-sm mb-4">
+
 
                     <div class="card-body">
 
-                        <p>
-                            {{ post.content }}
-                        </p>
 
+                        <!-- POST DATE -->
+
+                        <div class="d-flex justify-content-between">
+
+                            <small class="text-muted">
+
+                                {{ post.created_at }}
+
+                            </small>
+
+
+                            <div>
+
+                                <a
+                                    href="/edit-post/{{ post.id }}"
+                                    class="btn btn-outline-warning btn-sm">
+
+                                    Edit
+
+                                </a>
+
+
+                                <form
+                                    method="POST"
+                                    action="/delete-post/{{ post.id }}"
+                                    class="d-inline">
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-outline-danger btn-sm">
+
+                                        Delete
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+
+                        <hr>
+
+
+                        <!-- IMAGE -->
 
                         {% if post.image %}
 
                         <img
                             src="{{ url_for('static',
                             filename='uploads/' + post.image) }}"
-                            class="img-fluid rounded mb-3"
-                            style="max-height:400px;">
+                            class="post-image rounded mb-3"
+                            alt="Post Image">
 
                         {% endif %}
 
 
-                        <small class="text-muted">
-                            {{ post.created_at }}
-                        </small>
+                        <!-- CONTENT -->
+
+                        <p class="mb-3">
+
+                            {{ post.content }}
+
+                        </p>
 
 
-                        <div class="mt-3">
+                        <!-- POST STATS -->
 
-                            <a
-                                href="/edit-post/{{ post.id }}"
-                                class="btn btn-warning btn-sm">
-
-                                Edit
-
-                            </a>
+                        <div class="d-flex gap-4 text-muted">
 
 
-                            <form
-                                method="POST"
-                                action="/delete-post/{{ post.id }}"
-                                class="d-inline">
+                            <span>
 
-                                <button
-                                    class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Delete this post?')">
+                                ❤️
+                                {{ post.like_count|default(0) }}
 
-                                    Delete
+                                Likes
 
-                                </button>
+                            </span>
 
-                            </form>
+
+                            <span>
+
+                                💬
+                                {{ post.comments|length }}
+
+                                Comments
+
+                            </span>
+
 
                         </div>
+
 
                     </div>
 
                 </div>
 
+
                 {% endfor %}
+
 
             {% else %}
 
-                <div class="alert alert-info">
-                    You haven't created any posts yet.
+
+                <!-- NO POSTS -->
+
+                <div class="card shadow-sm border-0">
+
+                    <div class="card-body text-center py-5">
+
+                        <div class="display-5 mb-3">
+
+                            📭
+
+                        </div>
+
+
+                        <h4 class="fw-bold">
+
+                            No Posts Yet
+
+                        </h4>
+
+
+                        <p class="text-muted">
+
+                            You haven't created any posts yet.
+
+                        </p>
+
+
+                        <a
+                            href="/create-post"
+                            class="btn btn-primary">
+
+                            Create Your First Post
+
+                        </a>
+
+                    </div>
+
                 </div>
 
+
             {% endif %}
+
 
         </div>
 
@@ -199,5 +487,8 @@
 
 </div>
 
+
 </body>
+
 </html>
+```

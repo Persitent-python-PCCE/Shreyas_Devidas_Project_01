@@ -30,9 +30,29 @@ class PostService:
         return True, post
 
 
-    def get_all_posts(self):
+    def get_all_posts(self, current_user_id=None):
 
-        return self.post_dao.get_all_posts()
+        posts = self.post_dao.get_all_posts()
+
+        for post in posts:
+
+            post.like_count = len(post.likes)
+
+            post.comment_count = len(post.comments)
+
+            post.is_liked = False
+
+            if current_user_id:
+
+                for like in post.likes:
+
+                    if str(like.user_id) == str(current_user_id):
+
+                        post.is_liked = True
+
+                        break
+
+        return posts
 
 
     def update_post(self, post_id, user_id, content, image_path):
@@ -72,3 +92,17 @@ class PostService:
             return False, "Failed to delete post"
 
         return True, "Post deleted successfully"
+
+
+    def get_posts_by_user(self, user_id):
+
+        return self.post_dao.get_posts_by_user(user_id)
+
+    def get_followers_count(self, user_id):
+
+        return self.follower_dao.get_followers_count(user_id)
+
+
+    def get_following_count(self, user_id):
+
+        return self.follower_dao.get_following_count(user_id)
